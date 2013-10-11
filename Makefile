@@ -14,14 +14,14 @@ AR = $(GCCDIR)arm-none-eabi-ar
 OBJCOPY = $(GCCDIR)arm-none-eabi-objcopy
 OBJDUMP = $(GCCDIR)arm-none-eabi-objdump
 
-DEBUG_OPTS = -g3 -gdwarf-2 -gstrict-dwarf
+# DEBUG_OPTS = g3 -gdwarf-2 -gstrict-dwarf
 OPTS = -Os
 TARGET = -mcpu=cortex-m0
 CFLAGS = -ffunction-sections -fdata-sections -Wall -Wa,-adhlns="$@.lst" \
 		 -fmessage-length=0 $(TARGET) -mthumb -mfloat-abi=soft \
 		 $(DEBUG_OPTS) $(OPTS) -I .
 
-LIBOBJS = _startup.o syscalls.o uart.o delay.o accel.o touch.o usb.o \
+LIBOBJS = _startup.o syscalls.o uart.o delay.o accel.o touch.o \
 		ring.o tests.o
 
 INCLUDES = freedom.h common.h
@@ -30,7 +30,7 @@ INCLUDES = freedom.h common.h
 
 # -----------------------------------------------------------------------------
 
-all: demo.srec demo.dump
+all: demo.S19 demo.dump
 
 libbare.a: $(LIBOBJS)
 	$(AR) -rv libbare.a $(LIBOBJS)
@@ -44,7 +44,7 @@ clean:
 %.dump: %.out
 	$(OBJDUMP) --disassemble $< >$@
 
-%.srec: %.out
+%.S19: %.out
 	$(OBJCOPY) -O srec $< $@
 
 %.out: %.o mkl25z4.ld libbare.a
@@ -54,7 +54,7 @@ clean:
 # Burn/deploy by copying to the development board filesystem
 #  Hack:  we identify the board by the filesystem size (128mb)
 DEPLOY_VOLUME = $(shell df -h 2>/dev/null | fgrep " 128M" | awk '{print $$6}')
-deploy: demo.srec
+deploy: demo.S19
 	dd conv=fsync bs=64k if=$< of=$(DEPLOY_VOLUME)/$<
 	
 # -----------------------------------------------------------------------------
