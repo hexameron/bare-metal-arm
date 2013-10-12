@@ -12,16 +12,16 @@
 extern char *_sbrk(int len);
 
 /* blink()
- * delays 16*60 = 960ms
+ * delays 12*80 = 960ms
  * with visible pattern on LED
  */
 void blink(void)
 {
-	unsigned int pat = 0b1100110011001100;
+	unsigned int pat = 0b0111000111000;
 	while (pat) 
 	{
-		RGB_LED(pat&2 ? 30:0, pat&1 ? 60:0, pat&4? 40:0);
-		delay(60);
+		RGB_LED(pat&2 ? 10:0, pat&1 ? 40:0, pat&4? 10:0 );
+		delay( 80 );
 		pat >>= 1;
 	}	
 }
@@ -29,8 +29,10 @@ void blink(void)
 // Main program
 int main(void)
 {
-    char i;
     char *heap_end;
+    short ax, ay, az;
+    short pitch, roll;
+    unsigned short force;
     unsigned short checksum = 0xdead;
     unsigned short seq = 100;
 
@@ -39,29 +41,27 @@ int main(void)
     accel_init();
     touch_init((1 << 9) | (1 << 10));       // Channels 9 and 10
     setvbuf(stdin, NULL, _IONBF, 0);        // No buffering
-    // tests();
+
+    // Unused here, but necessary.
+    heap_end = _sbrk(0);
 
     blink(); 
 
     // Welcome banner
     iprintf("\r\n\r\n====== Freescale Freedom FRDM-KL25Z\r\n");
-
-    getchar();
-
     iprintf("\r\nBuilt: %s %s\r\n", __DATE__, __TIME__);
-    heap_end = _sbrk(0);
-    iprintf("Reset code: 0x%02x 0x%02x\r\n", RCM_SRS0, RCM_SRS1);
-    iprintf("Heap:  %p to %p (%d bytes used)\r\n", __heap_start, heap_end, 
-                heap_end - (char *)__heap_start);
-    iprintf("Stack: %p to %p (%d bytes used)\r\n", &i, __StackTop, 
-                (char *)__StackTop - &i);
-    iprintf("%d bytes free\r\n", &i - heap_end);
-
-    iprintf("Ident, Count, Accel x,y,z, Touch a,z *Chksum\r\n");
+    iprintf("Ident, Count, Accel mag,pitch,roll Touch a,z *Chksum\r\n");
     
     for(;;) {
-        blink();
-        iprintf("$$HEX,%d,%5d,%5d,%5d,",seq++, accel_x(), accel_y(), accel_z());
-        iprintf("%3d,%3d*%x\r\n", touch_data(9), touch_data(10), checksum);
+	blink();
+
+	ax = accel_x();
+	ay = accel_y();
+	az = accel_z();
+	force = magnitude( ax, ay, az) >> 2;
+	pitch = findAngle( az, ax );
+	roll  = findAngle( az, ay );
+        iprintf("$$HEX,%d,%4d,%3d,%3d,",seq++, force, pitch, roll);
+        iprintf("%d,%d*%x\r\n", touch_data(9), touch_data(10), checksum);
     }
 }

@@ -3,12 +3,19 @@
 //  Copyright (c) 2012-2013 Andrew Payne <andy@payne.org>
 //
 
+#include "MKL25Z4.h"
+
 // Memory locations defined by the linker
 extern uint32_t __heap_start[];
 extern uint32_t __StackTop[];
 extern uint32_t __data_start__[], __data_end__[];
 extern uint32_t __bss_start__[], __bss_end__[];
 extern uint32_t __etext[];                // End of code/flash
+
+// From math.c
+unsigned short magnitude(short x, short y, short z);
+short findAngle(short x, short y);
+short upness(short x, short y, short z);
 
 // From uart.c
 void UART0_IRQHandler() __attribute__((interrupt("IRQ")));
