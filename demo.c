@@ -10,6 +10,7 @@
 #include "common.h"
 
 extern char *_sbrk(int len);
+static char *heap_end;
 
 /* blink()
  * delays 12*80 = 960ms
@@ -29,7 +30,6 @@ void blink(void)
 // Main program
 int main(void)
 {
-    char *heap_end;
     short ax, ay, az;
     short pitch, roll;
     unsigned short force;
@@ -58,9 +58,10 @@ int main(void)
 	ax = accel_x();
 	ay = accel_y();
 	az = accel_z();
-	force = magnitude( ax, ay, az) >> 2;
-	pitch = findAngle( az, ax );
+	force = magnitude( ax, ay, az);
+	pitch = findArcsin( ax, force );
 	roll  = findAngle( az, ay );
+	force >>= 2;
         iprintf("$$HEX,%d,%4d,%3d,%3d,",seq++, force, pitch, roll);
         iprintf("%d,%d*%x\r\n", touch_data(9), touch_data(10), checksum);
     }

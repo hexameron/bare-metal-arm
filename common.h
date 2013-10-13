@@ -16,6 +16,7 @@ extern uint32_t __etext[];                // End of code/flash
 unsigned short magnitude(short x, short y, short z);
 short findAngle(short x, short y);
 short upness(short x, short y, short z);
+short findArcsin( short scalar, unsigned short mag );
 
 // From uart.c
 void UART0_IRQHandler() __attribute__((interrupt("IRQ")));

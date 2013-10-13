@@ -52,7 +52,7 @@ short upness(short x, short y, short z)
 	return result;
 }
 
-// Returns angle of 2D vector. Would need 3D vectors to handle pitch/roll close to 90% )
+// Returns Arctan of 2D vector. Used for roll.
 short findAngle( short x, short y)
 {
 	unsigned short ux, uy, mag;
@@ -81,3 +81,25 @@ short findAngle( short x, short y)
 	if ( x < 0 ) return (180 - result);
 	return result;
 }
+
+// Used for finding pitch.
+// Limited to +/-90, inaccurate for steep climb/dive.
+// TODO: Use lookup table that copes with -ve input.
+short findArcsin( short scalar, unsigned short mag)
+{
+	int sine;
+	short result;
+
+	if ( 0 == mag ) return 0;
+	if ( scalar < 0 ) sine = -scalar;
+		else	sine = scalar;
+	sine = (sine << 6 ) / mag;
+	result = arcsin[ sine ];
+	if ( scalar < 0 ) 
+		return ( -result );
+	return result;
+}
+
+
+
+
