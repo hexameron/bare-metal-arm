@@ -12,25 +12,12 @@
 extern char *_sbrk(int len);
 static char *heap_end;
 
-/* blink()
- * delays 12*80 = 960ms
- * with visible pattern on LED
- */
-void blink(void)
-{
-	unsigned int pat = 0b0111000111000;
-	while (pat) 
-	{
-		RGB_LED(pat&2 ? 10:0, pat&1 ? 40:0, pat&4? 10:0 );
-		delay( 80 );
-		pat >>= 1;
-	}	
-}
-
 // Main program
 int main(void)
 {
+    unsigned int pat;
     short ax, ay, az;
+    short red, green, blue;
     short pitch, roll;
     unsigned short force;
     unsigned short checksum = 0xdead;
@@ -45,23 +32,38 @@ int main(void)
     // Unused here, but necessary.
     heap_end = _sbrk(0);
 
-    blink(); 
-
+    RGB_LED( 0, 40, 0 );
+    delay( 100 );
     // Welcome banner
     iprintf("\r\n\r\n====== Freescale Freedom FRDM-KL25Z\r\n");
     iprintf("\r\nBuilt: %s %s\r\n", __DATE__, __TIME__);
     iprintf("Ident, Count, Accel mag,pitch,roll Touch a,z *Chksum\r\n");
     
     for(;;) {
-	blink();
+	pat = 1 << 7;
+	while (pat) {
+		ax = accel_x();
+		ay = accel_y();
+		az = accel_z();
+		force = magnitude( ax, ay, az);
+		pitch = findArcsin( ax, force );
+		roll  = findAngle( az, ay );
+		force >>= 2;
 
-	ax = accel_x();
-	ay = accel_y();
-	az = accel_z();
-	force = magnitude( ax, ay, az);
-	pitch = findArcsin( ax, force );
-	roll  = findAngle( az, ay );
-	force >>= 2;
+		red = (force - 1000) >> 3;
+		if (red < 0) red = -red;
+		if (red > 80) red = 80;
+		blue = pitch;
+		if (blue < 0) blue = -blue;
+		if (blue > 80) blue = 80;
+		green = roll;
+		if (green < 0) green = -green;
+		if (green > 80) green = 80;
+		RGB_LED( red, green, blue );
+
+		pat >>= 1;
+		delay(120);
+	}
         iprintf("$$HEX,%d,%4d,%3d,%3d,",seq++, force, pitch, roll);
         iprintf("%d,%d*%x\r\n", touch_data(9), touch_data(10), checksum);
     }
