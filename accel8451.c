@@ -76,7 +76,10 @@ inline void i2c_init(I2C_MemMapPtr p)
 
 uint8_t mma8451_read(uint8_t addr)
 {
-    delay(1);
+    short n;
+    for(n=0; n<100; n++)
+        asm("nop");
+
     i2c_start(I2C0_B);
     i2c_write(I2C0_B, MMA8451_I2C_ADDRESS | I2C_WRITE);
     i2c_write(I2C0_B, addr);
@@ -92,7 +95,10 @@ uint8_t mma8451_read(uint8_t addr)
 
 void mma8451_write(uint8_t addr, uint8_t data)
 {
-    delay(1);
+    short n;
+    for(n=0; n<100; n++)
+        asm("nop");
+
     i2c_start(I2C0_B);
     i2c_write(I2C0_B, MMA8451_I2C_ADDRESS | I2C_WRITE);
     i2c_write(I2C0_B, addr);

@@ -21,8 +21,8 @@ CFLAGS = -ffunction-sections -fdata-sections -Wall -Wa,-adhlns="$@.lst" \
 		 -fmessage-length=0 $(TARGET) -mthumb -mfloat-abi=soft \
 		 $(DEBUG_OPTS) $(OPTS) -I .
 
-LIBOBJS = _startup.o syscalls.o uart.o delay.o accel.o touch.o \
-		ring.o tests.o math.o
+LIBOBJS = _startup.o syscalls.o uart.o delay.o touch.o \
+		ring.o tests.o math.o accel8451.o
 #		mpl3115a2.o
 
 INCLUDES = freedom.h common.h
