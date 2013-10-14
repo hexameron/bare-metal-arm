@@ -45,9 +45,9 @@ int main(void)
 		ax = accel_x();
 		ay = accel_y();
 		az = accel_z();
-		force = magnitude( ax, ay, az);
-		pitch = findArcsin( ax, force );
-		roll  = findAngle( az, ay );
+		force = magnitude( ax, ay, az );
+		pitch = findArctan( ax, ay, az );
+		roll  = findArctan( az, ay, 0 );
 		force >>= 2;
 
 		red = (force - 1000) >> 3;

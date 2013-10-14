@@ -1,7 +1,5 @@
 // Copyright John Greb, part of bare-metal-arm project under MIT License
 
-#include "arcsin.h"
-
 // returns hypotenuse of 3D vector
 unsigned short magnitude(short x, short y, short z)
 {
@@ -52,28 +50,39 @@ short upness(short x, short y, short z)
 	return result;
 }
 
-// Returns Arctan of 2D vector. Used for roll.
-short findAngle( short x, short y)
+// Returns Arctangent of vector, adjusted to suit pitch or roll.
+#include "arctan.h"
+short findArctan( short x, short y, short z)
 {
-	unsigned short ux, uy, mag;
-	int sine;
+	unsigned short ux, uy;
+	int tangent;
 	short result;
 
+	if ( 0 == x ) return 0;
 	if ( x < 0 ) ux = -x;
 		else ux = x;
-	if ( y < 0 ) uy = -y;
-		else uy = y;
-	
-	mag = magnitude ( x, y, 0);
-	if ( 0 == mag ) return 0;
 
-	if ( uy > ux )
-		sine = (int)ux;
-	else
-		sine = (int)uy;
-	sine = (sine << 6 ) / mag;
-	result = arcsin[ sine ];
-	if ( uy > ux ) result = 90 - result;
+	// seperate calc for 2d or 3d vectors
+	if ( 0 == z ) {
+		if ( y < 0 ) uy = -y;
+			else uy = y;
+	} else uy = magnitude( y, z, 0);
+
+	if ( uy > ux ) {
+		tangent = ((int)ux <<6) /uy;
+		result = 90 - arctan[ tangent ];
+	} else {
+		tangent = ((int)uy <<6) /ux;
+		result = arctan[ tangent ];
+	}
+
+	// special case for 3d vector (pitch)
+	if ( z != 0 ) {
+		if ( x < 0 ) return (90 - result);
+			else return (result - 90); 
+	}
+
+	// normal case for 2d vector (roll)
 	if ( y < 0 ) {
 		if ( x < 0 ) return (result - 180); 
 		return (-result);
@@ -81,6 +90,11 @@ short findAngle( short x, short y)
 	if ( x < 0 ) return (180 - result);
 	return result;
 }
+
+
+#ifdef USEARCSIN
+// undefined when unused to save memory
+#include "arcsin.h"
 
 // Used for finding pitch.
 // Limited to +/-90, inaccurate for steep climb/dive.
@@ -99,7 +113,7 @@ short findArcsin( short scalar, unsigned short mag)
 		return ( -result );
 	return result;
 }
-
+#endif
 
 
 
