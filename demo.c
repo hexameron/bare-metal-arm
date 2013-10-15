@@ -61,8 +61,8 @@ int main(void)
 		if (green < 0) green = -green;
 		if (green > 80) green = 80;
 
-		t1 = (touch_data(9) + 1) >> 3;
-		t2 = (touch_data(10) + 1) >> 3;
+		t1 = (touch_data(9) + 4) >> 3;
+		t2 = (touch_data(10) + 4) >> 3;
 		if (t1 + t2 ) {
 			blue = t1;
 			green = t2;
