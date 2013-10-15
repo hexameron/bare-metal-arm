@@ -17,6 +17,7 @@ int main(void)
 {
     unsigned int pat;
     short ax, ay, az;
+    short t1, t2;
     short red, green, blue;
     short pitch, roll;
     unsigned short force;
@@ -37,7 +38,7 @@ int main(void)
     // Welcome banner
     iprintf("\r\n\r\n====== Freescale Freedom FRDM-KL25Z\r\n");
     iprintf("\r\nBuilt: %s %s\r\n", __DATE__, __TIME__);
-    iprintf("Ident, Count, Accel mag,pitch,roll Touch a,z *Chksum\r\n");
+    iprintf("Ident, Count, Accel mag,pitch,roll Touch l,r *Chksum\r\n");
     
     for(;;) {
 	pat = 1 << 7;
@@ -59,12 +60,20 @@ int main(void)
 		green = roll;
 		if (green < 0) green = -green;
 		if (green > 80) green = 80;
+
+		t1 = (touch_data(9) + 1) >> 3;
+		t2 = (touch_data(10) + 1) >> 3;
+		if (t1 + t2 ) {
+			blue = t1;
+			green = t2;
+		}	
+
 		RGB_LED( red, green, blue );
 
 		pat >>= 1;
 		delay(120);
 	}
         iprintf("$$HEX,%d,%4d,%3d,%3d,",seq++, force, pitch, roll);
-        iprintf("%d,%d*%x\r\n", touch_data(9), touch_data(10), checksum);
+        iprintf("%d,%d,*%x\r\n", t1, t2, checksum);
     }
 }
