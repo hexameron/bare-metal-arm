@@ -1,3 +1,10 @@
+EVK Branch
+==========
+
+Adding support for Xtrinsic EVK sensors Pack:
+
+1) MMA8491Q Accelerometer.
+
 Bare Metal Arm
 ==============
 
