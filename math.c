@@ -3,24 +3,21 @@
 // returns hypotenuse of 3D vector
 unsigned short magnitude(short x, short y, short z)
 {
-	short loops = 0;
-	unsigned short result, last; 
-	unsigned int square, step;
+	unsigned int square, result;
+	unsigned int bit = 1 << 14;
 
-	if ( x < 0 ) x = -x;
-	if ( y < 0 ) y = -y;
-	if ( z < 0 ) z = -z;
+	result = 0;
 	square = x*x + y*y + z*z;
-	result = x + y + z;
-	if ( result < 1 ) return 0;
 
+	// Cortex M0 has no divide instruction ...
 	do {
-		last = result;
-		step = square / result;
-		result = (result + (unsigned short)(step) )>> 1;
-	} while ( (loops++ < 5) && (last != result) );
+		result |= bit;
+		if ( result * result > square )
+			result ^= bit;
+		bit >>= 1;
+	} while ( bit);
 
-	return result;
+	return (unsigned short)result;
 }
 
 // returns upper-most face of case
