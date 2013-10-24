@@ -21,8 +21,8 @@ CFLAGS = -ffunction-sections -fdata-sections -Wall -Wa,-adhlns="$@.lst" \
 		 -fmessage-length=0 $(TARGET) -mthumb -mfloat-abi=soft \
 		 $(DEBUG_OPTS) $(OPTS) -I .
 
-#optional: mpl3115a2.o (accel8451.o OR accel8491.o)
-LIBOPTIONS = accel8491.o
+#optional: bar3115.o (accel8451.o OR accel8491.o)
+LIBOPTIONS = accel8491.o baro3115.o
 LIBOBJS = _startup.o syscalls.o uart.o delay.o touch.o \
 		hal_i2c.o ring.o tests.o math.o $(LIBOPTIONS)
 

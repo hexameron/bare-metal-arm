@@ -22,8 +22,6 @@ void i2c_start(I2C_MemMapPtr p);
 void i2c_stop(I2C_MemMapPtr p);
 void i2c_wait(I2C_MemMapPtr p);
 uint16_t i2c_get_ack(I2C_MemMapPtr p);
-void hal_i2c_init(I2C_MemMapPtr p);
-void hal_i2c_deinit(I2C_MemMapPtr p);
 void hal_i2c_write(I2C_MemMapPtr I2C_id, char dev_addr, char reg, char value);
 uint8_t hal_i2c_read(I2C_MemMapPtr I2C_id, char dev_addr, char reg);
 uint8_t hal_i2c_BulkRead(I2C_MemMapPtr I2C_id, char dev_addr, char StartReg, char Length, char *buf);

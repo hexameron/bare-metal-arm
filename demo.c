@@ -18,6 +18,7 @@ int main(void)
     unsigned int pat;
     short ax, ay, az;
     short t1, t2;
+    short alt,temp;
     short red, green, blue;
     short pitch, roll;
     unsigned short force;
@@ -26,7 +27,9 @@ int main(void)
 
     // Initialize all modules
     uart_init(115200);
+    hal_i2c_init(I2C1_BASE_PTR);	// Setup I2C for EVK
     accel_init();
+    baro_init();
     touch_init((1 << 9) | (1 << 10));       // Channels 9 and 10
     setvbuf(stdin, NULL, _IONBF, 0);        // No buffering
 
@@ -38,7 +41,7 @@ int main(void)
     // Welcome banner
     iprintf("\r\n\r\n====== Freescale Freedom FRDM-KL25Z\r\n");
     iprintf("\r\nBuilt: %s %s\r\n", __DATE__, __TIME__);
-    iprintf("Ident, Count, Accel mag,pitch,roll Touch l,r *Chksum\r\n");
+    iprintf("Ident, Count, Accel mag,pitch,roll, altitude,temp *Chksum\r\n");
     
     for(;;) {
 	pat = 1 << 7;
@@ -51,15 +54,13 @@ int main(void)
 		roll  = findArctan( az, ay, 0 );
 		force >>= 2;
 
-		red = (force - 1000) >> 3;
+		red = (force - 1000) >> 4;
 		if (red < 0) red = -red;
 		if (red > 80) red = 80;
 		blue = pitch;
 		if (blue < 0) blue = -blue;
-		if (blue > 80) blue = 80;
-		green = roll;
+		green = roll >> 1;
 		if (green < 0) green = -green;
-		if (green > 80) green = 80;
 
 		t1 = (touch_data(9) + 4) >> 3;
 		t2 = (touch_data(10) + 4) >> 3;
@@ -67,13 +68,18 @@ int main(void)
 			blue = t1;
 			green = t2;
 		}	
+                if (green > 80) green = 80;
+                if (blue > 80) blue = 80;
 
 		RGB_LED( red, green, blue );
 
 		pat >>= 1;
 		delay(120);
 	}
-        iprintf("$$HEX,%d,%4d,%3d,%3d,",seq++, force, pitch, roll);
-        iprintf("%d,%d,*%x\r\n", t1, t2, checksum);
+
+	alt  = baro_alt();
+	temp = baro_temp();
+	iprintf("$$HEX,%d,%4d,%3d,%3d,",seq++, force, pitch, roll);
+	iprintf("%d,%d,*%x\r\n", alt, temp, checksum);
     }
 }

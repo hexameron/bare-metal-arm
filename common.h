@@ -12,6 +12,10 @@ extern uint32_t __data_start__[], __data_end__[];
 extern uint32_t __bss_start__[], __bss_end__[];
 extern uint32_t __etext[];                // End of code/flash
 
+// From hal_i2c.c
+void hal_i2c_init(I2C_MemMapPtr p);
+void hal_i2c_deinit(I2C_MemMapPtr p);
+
 // From math.c
 unsigned short magnitude(short x, short y, short z);
 short findArctan(short x, short y, short z);
@@ -33,6 +37,11 @@ void accel_init(void);
 int16_t accel_x(void);
 int16_t accel_y(void);
 int16_t accel_z(void);
+
+// From baro3115.c
+void  baro_init();
+short baro_alt();
+short baro_temp();
 
 // From touch.c
 int touch_data(int channel);

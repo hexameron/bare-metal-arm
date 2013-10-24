@@ -42,8 +42,6 @@ void mma8491_read()
 
 void accel_init(void)
 {
-    hal_i2c_init(I2C1_B);
-
     // Setup 8491 Enable on pin A13
     PORTA_PCR13 = PORT_PCR_MUX(1);
     GPIOA_PCOR |= 1 << 13;
@@ -51,8 +49,10 @@ void accel_init(void)
 }
 
 // Read acceleration values for all axis in bulk when asked for X
+// 8491 only supports 8g mode, so return 16 bit values to match 8451 
+
 int16_t accel_x(void) { mma8491_read();
-			return acc8491data[0]; }
-int16_t accel_y(void) { return acc8491data[1]; }
-int16_t accel_z(void) { return acc8491data[2]; }
+			return acc8491data[0]&~3; }
+int16_t accel_y(void) { return acc8491data[1]&~3; }
+int16_t accel_z(void) { return acc8491data[2]&~3; }
 
