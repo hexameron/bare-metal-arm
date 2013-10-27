@@ -21,6 +21,7 @@ int main(void)
     short alt,temp;
     short red, green, blue;
     short pitch, roll;
+    short compass;
     unsigned short force;
     unsigned short checksum = 0xdead;
     unsigned short seq = 100;
@@ -30,6 +31,7 @@ int main(void)
     hal_i2c_init(I2C1_BASE_PTR);	// Setup I2C for EVK
     accel_init();
     baro_init();
+    mag_init();
     touch_init((1 << 9) | (1 << 10));       // Channels 9 and 10
     setvbuf(stdin, NULL, _IONBF, 0);        // No buffering
 
@@ -41,7 +43,7 @@ int main(void)
     // Welcome banner
     iprintf("\r\n\r\n====== Freescale Freedom FRDM-KL25Z\r\n");
     iprintf("\r\nBuilt: %s %s\r\n", __DATE__, __TIME__);
-    iprintf("Ident, Count, Accel mag,pitch,roll, altitude,temp *Chksum\r\n");
+    iprintf("Ident, Count, force,pitch,roll, mag field, altitude,temp *Chksum\r\n");
     
     for(;;) {
 	pat = 1 << 7;
@@ -54,9 +56,10 @@ int main(void)
 		roll  = findArctan( az, ay, 0 );
 		force >>= 2;
 
-		red = (force - 1000) >> 4;
+		compass = mag_compass();
+
+		red = (force - 1020) >> 4;
 		if (red < 0) red = -red;
-		if (red > 80) red = 80;
 		blue = pitch;
 		if (blue < 0) blue = -blue;
 		green = roll >> 1;
@@ -68,8 +71,9 @@ int main(void)
 			blue = t1;
 			green = t2;
 		}	
-                if (green > 80) green = 80;
-                if (blue > 80) blue = 80;
+		if (green > 80) green = 80;
+		if (blue > 80) blue = 80;
+		if (red > 80) red = 80;
 
 		RGB_LED( red, green, blue );
 
@@ -80,6 +84,6 @@ int main(void)
 	alt  = baro_alt();
 	temp = baro_temp();
 	iprintf("$$HEX,%d,%4d,%3d,%3d,",seq++, force, pitch, roll);
-	iprintf("%d,%d,*%x\r\n", alt, temp, checksum);
+	iprintf("%3d,%d,%d,*%x\r\n", compass, alt, temp, checksum);
     }
 }

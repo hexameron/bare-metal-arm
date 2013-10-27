@@ -39,9 +39,13 @@ int16_t accel_y(void);
 int16_t accel_z(void);
 
 // From baro3115.c
-void  baro_init();
-short baro_alt();
-short baro_temp();
+void  baro_init(void);
+short baro_alt(void);
+short baro_temp(void);
+
+// From mag3110.c
+void  mag_init(void);
+short mag_compass(void);
 
 // From touch.c
 int touch_data(int channel);

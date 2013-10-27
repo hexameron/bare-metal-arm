@@ -5,6 +5,7 @@ Adding support for Xtrinsic EVK sensors Pack:
 
 1) MMA8491Q Accelerometer.
 2) MPL3115A Barometer.
+3) MAG3110  Magnetometer.
 
 Bare Metal Arm
 ==============
