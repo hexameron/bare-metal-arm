@@ -71,6 +71,9 @@ int16_t _read_reg14(int reg)
     return (int16_t)((mma8451_read(reg) << 8) | mma8451_read(reg+1)) >> 2;
 }
 
+// Stub for compatability, this chip reads continuously
+void accel_read(void);
+
 // Read acceleration values for each axis
 int16_t accel_x(void) {return _read_reg14(0x01);}
 int16_t accel_y(void) {return _read_reg14(0x03);}

@@ -18,6 +18,8 @@ void hal_i2c_deinit(I2C_MemMapPtr p);
 
 // From math.c
 unsigned short magnitude(short x, short y, short z);
+short sine(short angle);
+short cosine(short angle);
 short findArctan(short x, short y, short z);
 short upness(short x, short y, short z);
 short findArcsin( short scalar, unsigned short mag );
@@ -34,6 +36,7 @@ void delay(unsigned int ms);
 
 // From accel.c
 void accel_init(void);
+void accel_read(void);
 int16_t accel_x(void);
 int16_t accel_y(void);
 int16_t accel_z(void);
@@ -45,7 +48,7 @@ short baro_temp(void);
 
 // From mag3110.c
 void  mag_init(void);
-short mag_compass(void);
+short mag_compass(short pitch, short roll);
 
 // From touch.c
 int touch_data(int channel);

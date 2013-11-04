@@ -16,7 +16,7 @@
 
 static short acc8491data[3] = {4096,0,0};
 
-void mma8491_read()
+void accel_read()
 {
     uint8_t status;
     char    rawdata[8];
@@ -51,8 +51,7 @@ void accel_init(void)
 // Read acceleration values for all axis in bulk when asked for X
 // 8491 only supports 8g mode, so return 16 bit values to match 8451 
 
-int16_t accel_x(void) { mma8491_read();
-			return acc8491data[0]&~3; }
+int16_t accel_x(void) { return acc8491data[0]&~3; }
 int16_t accel_y(void) { return acc8491data[1]&~3; }
 int16_t accel_z(void) { return acc8491data[2]&~3; }
 

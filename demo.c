@@ -48,6 +48,7 @@ int main(void)
     for(;;) {
 	pat = 1 << 7;
 	while (pat) {
+		accel_read();
 		ax = accel_x();
 		ay = accel_y();
 		az = accel_z();
@@ -55,8 +56,6 @@ int main(void)
 		pitch = findArctan( ax, ay, az );
 		roll  = findArctan( az, ay, 0 );
 		force >>= 2;
-
-		compass = mag_compass();
 
 		red = (force - 1020) >> 4;
 		if (red < 0) red = -red;
@@ -83,6 +82,7 @@ int main(void)
 
 	alt  = baro_alt();
 	temp = baro_temp();
+	compass = mag_compass(pitch, roll);
 	iprintf("$$HEX,%d,%4d,%3d,%3d,",seq++, force, pitch, roll);
 	iprintf("%3d,%d,%d,*%x\r\n", compass, alt, temp, checksum);
     }
