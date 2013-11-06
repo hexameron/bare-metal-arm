@@ -85,14 +85,10 @@ short mag_compass(short pitch, short roll)
 	sin_roll = sine(-roll);
 	cos_roll = cosine(-roll);
 
-        //(mz * sin(roll) – my * cos(roll))
-        angle1 = magZ * sin_roll - magY * cos_roll;
+	angle1 = magZ * sin_roll - magY * cos_roll;
+	angle2 = ((magZ * cos_roll) >> 7) * sin_pitch + magX * cos_pitch;
 
-        //(mx * cos(pitch) +  mz * cos(roll) * sin(pitch))
-        angle2 = ((magZ * cos_roll) >> 7) * sin_pitch + magX * cos_pitch;
-
-        result = 180 - findArctan(angle2, angle1, 0);
+	result = 180 - findArctan(angle2, angle1, 0);
 	return result;
-
 }
 

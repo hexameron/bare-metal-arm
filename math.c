@@ -16,7 +16,8 @@ short cosine(short angle)
 {
 	short result = 0;
 	if (angle < 0) angle = -angle;
-	if (angle > 90) return -(result | sinetable[270 - angle] );
+	if (angle > 90) // angle = 90 - (180 - angle)
+		 return -( result | sinetable[angle - 90] );
 	return ( result | sinetable[90 - angle] );
 }
 
@@ -75,7 +76,7 @@ short findArctan( short x, short y, short z)
 	int tangent;
 	short result;
 
-	if ( 0 == x ) return 0;
+	if ( 0 == x ) return 90;
 	if ( x < 0 ) ux = -x;
 		else ux = x;
 

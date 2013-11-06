@@ -17,6 +17,7 @@ int main(void)
 {
     unsigned int pat;
     short ax, ay, az;
+    short tx, ty, tz;
     short t1, t2, temp;
     short red, green, blue;
     short pitch, roll;
@@ -43,20 +44,29 @@ int main(void)
     iprintf("\r\n\r\n====== Freescale Freedom FRDM-KL25Z\r\n");
     iprintf("\r\nBuilt: %s %s\r\n", __DATE__, __TIME__);
     iprintf("Ident, Count, force,pitch,roll, mag field, pressure,temp *Chksum\r\n");
-    
+
+    ax = ay = az = 0;
     for(;;) {
 	pat = 1 << 7;
 	while (pat) {
 		accel_read();
-		ax = accel_x();
-		ay = accel_y();
-		az = accel_z();
+		// Oversample acceleration to steady compass
+		tx = accel_x();
+		ax = (ax + tx) >> 1;
+		ty = accel_y();
+		ay = (ay + ty) >> 1;
+		tz = accel_z();
+		az = (az + tz) >> 1;
 		force = magnitude( ax, ay, az );
 		pitch = findArctan( ax, ay, az );
 		roll  = findArctan( az, ay, 0 );
-		force >>= 2;
+		ax = tx;
+		ay = ty;
+		az = tz;
+		force += (force >> 1) + (force >> 4);
+		force >>= 6; // force as percentage of 1G
 
-		red = (force - 1020) >> 4;
+		red = (force - 100);
 		if (red < 0) red = -red;
 		blue = pitch;
 		if (blue < 0) blue = -blue;
@@ -82,7 +92,7 @@ int main(void)
 	pressure = get_pressure();
 	temp = baro_temp();
 	compass = mag_compass(pitch, roll);
-	iprintf("$$HEX,%d,%4d,%3d,%3d,",seq++, force, pitch, roll);
+	iprintf("$$HEX,%d,%3d,%3d,%3d,",seq++, force, pitch, roll);
 	iprintf("%3d,%d0,%d,*%x\r\n", compass, pressure, temp, checksum);
     }
 }
