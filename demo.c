@@ -17,12 +17,11 @@ int main(void)
 {
     unsigned int pat;
     short ax, ay, az;
-    short t1, t2;
-    short alt,temp;
+    short t1, t2, temp;
     short red, green, blue;
     short pitch, roll;
     short compass;
-    unsigned short force;
+    unsigned short force, pressure;
     unsigned short checksum = 0xdead;
     unsigned short seq = 100;
 
@@ -43,7 +42,7 @@ int main(void)
     // Welcome banner
     iprintf("\r\n\r\n====== Freescale Freedom FRDM-KL25Z\r\n");
     iprintf("\r\nBuilt: %s %s\r\n", __DATE__, __TIME__);
-    iprintf("Ident, Count, force,pitch,roll, mag field, altitude,temp *Chksum\r\n");
+    iprintf("Ident, Count, force,pitch,roll, mag field, pressure,temp *Chksum\r\n");
     
     for(;;) {
 	pat = 1 << 7;
@@ -80,10 +79,10 @@ int main(void)
 		delay(120);
 	}
 
-	alt  = baro_alt();
+	pressure = get_pressure();
 	temp = baro_temp();
 	compass = mag_compass(pitch, roll);
 	iprintf("$$HEX,%d,%4d,%3d,%3d,",seq++, force, pitch, roll);
-	iprintf("%3d,%d,%d,*%x\r\n", compass, alt, temp, checksum);
+	iprintf("%3d,%d0,%d,*%x\r\n", compass, pressure, temp, checksum);
     }
 }

@@ -44,6 +44,7 @@ int16_t accel_z(void);
 // From baro3115.c
 void  baro_init(void);
 short baro_alt(void);
+unsigned short get_pressure(void);
 short baro_temp(void);
 
 // From mag3110.c

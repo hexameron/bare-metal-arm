@@ -1,6 +1,5 @@
-// manually adjusted to remove double "8", add extra "0" 
-const short arctan[66] = {
-0,
+// manually adjusted to remove double "8", add extra "37" 
+const char arctan[66] = {
 0,
 1,
 2,
@@ -48,6 +47,7 @@ const short arctan[66] = {
 35,
 36,
 36,
+37,
 37,
 38,
 38,

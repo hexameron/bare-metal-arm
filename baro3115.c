@@ -20,9 +20,9 @@
 #define PT_DATA_CFG_REG (0x13)
 #define PP_OD12_MASK    (0x11)
 
-// Altitude mode, with 16x oversample
+// For altitude mode, with 32x oversample
 #define ALT_MASK	(1<<7)
-#define OVERSAMP_MASK	(4<<3)
+#define OVERSAMP_MASK	(5<<3)
 
 
 // Wake Barometer from Standby
@@ -51,11 +51,27 @@ short baro_alt()
 	alt = hal_i2c_read(I2C1_B, BARO_ADD, reg++);
 	alt <<= 8;
 	alt += hal_i2c_read(I2C1_B, BARO_ADD, reg++);
-	// alt <<= 8;
-        // alt += hal_i2c_read(I2C1_B, BARO_ADD, reg++)
-	// alt >>= 4;
 
 	return alt;
+}
+
+// pressure at ground is 101k (17 bits), unsigned  short is 16 bit
+// so we return (pressure / 10) for decimal printing.
+unsigned short get_pressure()
+{
+	long bar = 0;
+	char reg = BARO_A_OUT;
+	bar |= hal_i2c_read(I2C1_B, BARO_ADD, reg++);
+	bar <<= 8;
+	bar |= hal_i2c_read(I2C1_B, BARO_ADD, reg++);
+	bar <<= 8;
+	bar |= hal_i2c_read(I2C1_B, BARO_ADD, reg++);
+	bar >>= 6; // 18 significant bits of data
+
+	// divide by 10 => ( p * 3277 / 2^15) , only need 12 bits of headroom
+	bar *= 3277;
+	bar >>= 15;
+	return (unsigned short)bar;
 }
 
 short baro_temp()
@@ -75,8 +91,8 @@ void baro_init(void)
 {
 	char reg = BARO_CTRL1;
 
-	// Set altitude mode. For barometer mode remove ALT_MASK
-	hal_i2c_write(I2C1_B, BARO_ADD, reg++, (ALT_MASK | OVERSAMP_MASK )); 
+	// Set barometer mode, for altitude use (ALT_MASK | OVERSAMP_MASK ));
+	hal_i2c_write(I2C1_B, BARO_ADD, reg++, (OVERSAMP_MASK )); 
 	hal_i2c_write(I2C1_B, BARO_ADD, reg++, 0);
 	hal_i2c_write(I2C1_B, BARO_ADD, reg++, PP_OD12_MASK);
 	hal_i2c_write(I2C1_B, BARO_ADD, reg++, 0);
