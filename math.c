@@ -1,5 +1,26 @@
 // Copyright John Greb, part of bare-metal-arm project under MIT License
 
+#include "sine.h"
+// Look-up sine for +/-180 degrees, result in range +/-128 
+short sine(short angle)
+{
+	short result = 0;
+	if ( angle > 90 ) angle = (180 - angle);
+	if ( angle <-90 ) angle =-(180 + angle);
+	if ( angle < 0 ) return -(result | sinetable[-angle] );
+	return ( result | sinetable[angle] );
+}
+
+// Look-up cosine for +/-180 degrees, result in range +/-128
+short cosine(short angle)
+{
+	short result = 0;
+	if (angle < 0) angle = -angle;
+	if (angle > 90) // angle = 90 - (180 - angle)
+		 return -( result | sinetable[angle - 90] );
+	return ( result | sinetable[90 - angle] );
+}
+
 // returns hypotenuse of 3D vector
 unsigned short magnitude(short x, short y, short z)
 {
@@ -55,7 +76,6 @@ short findArctan( short x, short y, short z)
 	int tangent;
 	short result;
 
-	if ( 0 == x ) return 0;
 	if ( x < 0 ) ux = -x;
 		else ux = x;
 
@@ -65,7 +85,8 @@ short findArctan( short x, short y, short z)
 			else uy = y;
 	} else uy = magnitude( y, z, 0);
 
-	if ( uy > ux ) {
+	if ( 0 == uy) return 0; // avoid divide by zero
+	if ( uy >= ux ) {
 		tangent = ((int)ux <<6) /uy;
 		result = 90 - arctan[ tangent ];
 	} else {
