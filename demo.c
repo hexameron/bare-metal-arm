@@ -17,7 +17,8 @@ int main(void)
 {
     unsigned int pat;
     short ax, ay, az;
-    short tx, ty, tz;
+    short lpitch = 0;
+    short lroll = 0;
     short t1, t2, temp;
     short red, green, blue;
     short pitch, roll;
@@ -49,20 +50,14 @@ int main(void)
     for(;;) {
 	pat = 1 << 7;
 	while (pat) {
+		delay(120 );
 		accel_read();
-		// Oversample acceleration to steady compass
-		tx = accel_x();
-		ax = (ax + tx) >> 1;
-		ty = accel_y();
-		ay = (ay + ty) >> 1;
-		tz = accel_z();
-		az = (az + tz) >> 1;
+		ax = accel_x();
+		ay = accel_y();
+		az = accel_z();
 		force = magnitude( ax, ay, az );
 		pitch = findArctan( ax, ay, az );
 		roll  = findArctan( az, ay, 0 );
-		ax = tx;
-		ay = ty;
-		az = tz;
 		force += (force >> 1) + (force >> 4);
 		force >>= 6; // force as percentage of 1G
 
@@ -86,12 +81,17 @@ int main(void)
 		RGB_LED( red, green, blue );
 
 		pat >>= 1;
-		delay(120);
 	}
 
 	pressure = get_pressure();
 	temp = baro_temp();
-	compass = mag_compass(pitch, roll);
+
+	// Magnetometer is in one-shot mode so we need to use the accelerometer
+	// readings from the previous loop.
+	compass = mag_compass(lpitch, lroll);
+	lpitch = pitch;
+	lroll = roll;
+
 	iprintf("$$HEX,%d,%3d,%3d,%3d,",seq++, force, pitch, roll);
 	iprintf("%3d,%d0,%d,*%x\r\n", compass, pressure, temp, checksum);
     }
