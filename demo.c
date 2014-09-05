@@ -12,9 +12,27 @@
 extern char *_sbrk(int len);
 static char *heap_end;
 
+uint16_t check;
+void checksum(char x)
+{
+        short j;
+        uint16_t crc;
+        crc = check ^ ( (uint16_t)x << 8);
+        for (j = 0; j < 8; j++)
+        {
+                if (crc & 0x8000)
+                        crc = (crc << 1) ^ 0x1021;
+                else
+                        crc <<= 1;
+        }
+        check = crc;
+}
+
+
 // Main program
 int main(void)
 {
+    char c, telemetry[80];
     unsigned int pat;
     short ax, ay, az;
     short lpitch = 0;
@@ -23,15 +41,13 @@ int main(void)
     short red, green, blue;
     short pitch, roll;
     short compass;
-    unsigned short force, pressure;
-    unsigned short checksum = 0xdead;
+    unsigned short i, force;
     unsigned short seq = 100;
 
     // Initialize all modules
     uart_init(115200);
-    hal_i2c_init(I2C1_BASE_PTR);	// Setup I2C for EVK
+    hal_i2c_init(I2C0_BASE_PTR);	// Setup I2C port 0
     accel_init();
-    baro_init();
     mag_init();
     touch_init((1 << 9) | (1 << 10));       // Channels 9 and 10
     setvbuf(stdin, NULL, _IONBF, 0);        // No buffering
@@ -42,16 +58,15 @@ int main(void)
     RGB_LED( 0, 40, 0 );
     delay( 100 );
     // Welcome banner
-    iprintf("\r\n\r\n====== Freescale Freedom FRDM-KL25Z\r\n");
+    iprintf("\r\n\r\n====== Freescale Freedom FRDM-KL26Z\r\n");
     iprintf("\r\nBuilt: %s %s\r\n", __DATE__, __TIME__);
-    iprintf("Ident, Count, force,pitch,roll, mag field, pressure,temp *Chksum\r\n");
+    iprintf("Ident, Count, force,pitch,roll, mag field,temp *Chksum\r\n");
 
     ax = ay = az = 0;
     for(;;) {
 	pat = 1 << 7;
 	while (pat) {
 		delay(120 );
-		accel_read();
 		ax = accel_x();
 		ay = accel_y();
 		az = accel_z();
@@ -83,8 +98,7 @@ int main(void)
 		pat >>= 1;
 	}
 
-	pressure = get_pressure();
-	temp = baro_temp();
+	temp = mag_temp();
 
 	// Magnetometer is in one-shot mode so we need to use the accelerometer
 	// readings from the previous loop.
@@ -92,7 +106,14 @@ int main(void)
 	lpitch = pitch;
 	lroll = roll;
 
-	iprintf("$$HEX,%d,%3d,%3d,%3d,",seq++, force, pitch, roll);
-	iprintf("%3d,%d0,%d,*%x\r\n", compass, pressure, temp, checksum);
+        sniprintf(telemetry,75,"HEX,%d,%d,%d,%d,%d,%d,%d,%d",
+				seq++,force,pitch,roll,compass,temp,t1,t2);
+        check = 0xFFFF;
+        for (i=0; i<75; i++) {
+                c = telemetry[i];
+                if (!c) break;
+                checksum(c);
+        }
+        iprintf("$$%s*%04x\r\n",telemetry,check);
     }
 }

@@ -41,15 +41,10 @@ int16_t accel_x(void);
 int16_t accel_y(void);
 int16_t accel_z(void);
 
-// From baro3115.c
-void  baro_init(void);
-short baro_alt(void);
-unsigned short get_pressure(void);
-short baro_temp(void);
-
-// From mag3110.c
+// From mag8700.c
 void  mag_init(void);
 short mag_compass(short pitch, short roll);
+short mag_temp(void);
 
 // From touch.c
 int touch_data(int channel);
