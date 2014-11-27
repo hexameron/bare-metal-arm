@@ -12,6 +12,13 @@ extern uint32_t __data_start__[], __data_end__[];
 extern uint32_t __bss_start__[], __bss_end__[];
 extern uint32_t __etext[];                // End of code/flash
 
+// From spi.c
+void spi_init(void);
+uint8_t spi_status(void);
+void spi_write(uint8_t* p, uint8_t size, uint8_t addr);
+void spi_read(uint8_t* p, uint8_t size, uint8_t addr);
+void SPI0_IRQHandler(void) __attribute__((interrupt("IRQ")));
+
 // From math.c
 unsigned short magnitude(short x, short y, short z);
 short findArctan(short x, short y, short z);
@@ -19,7 +26,7 @@ short upness(short x, short y, short z);
 short findArcsin( short scalar, unsigned short mag );
 
 // From uart.c
-void UART0_IRQHandler() __attribute__((interrupt("IRQ")));
+void UART0_IRQHandler(void) __attribute__((interrupt("IRQ")));
 int uart_write(char *p, int len);
 int uart_write_err(char *p, int len);
 int uart_read(char *p, int len);
