@@ -3,11 +3,13 @@
 void spi_init(void) {
 	// Enable clock network to SPI0
 	SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
+	SIM_SCGC5 |= SIM_SCGC5_PORTC_MASK;
 	SIM_SCGC4 |= SIM_SCGC4_SPI0_MASK;
 	
 	// configure output crossbar
 	PORTD_PCR0 = PORT_PCR_MUX(2);  // PCS
-	PORTD_PCR1 = PORT_PCR_MUX(2);  // SCK
+//	PORTD_PCR1 = PORT_PCR_MUX(2);  // SCK - conflicts with blue LED
+	PORTC_PCR5 = PORT_PCR_MUX(2);  // ALT SCK
 	PORTD_PCR2 = PORT_PCR_MUX(2);  // MOSI
 	PORTD_PCR3 = PORT_PCR_MUX(2);  // MISO
 	

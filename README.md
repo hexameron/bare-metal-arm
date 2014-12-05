@@ -1,3 +1,9 @@
+Forked from payne92 to add a new demo.
+
+Branches added for extra Hardware support for EVK add-on board, and kl26z upgraded board.
+
+SPI support clashes with blue LED on PTD1 (arduino D13), so wired through PTD0,PTC5,PTD2,PTD3.
+
 Bare Metal Arm
 ==============
 
@@ -6,7 +12,7 @@ This is a "bare metal" runtime for the
 ARM development board ($13). It builds with the GCC ARM toolchain, with no other external dependencies. 
 
 Quick start on Linux or Mac OS X:
-* Clone the repo: `git clone https://github.com/payne92/bare-metal-arm.git`
+* Clone the repo: `git clone https://github.com/hexameron/bare-metal-arm.git`
 * Grab and unpack GCC ARM toolchain: `cd bare-metal-arm; make gcc-arm`
 * `make`
 
