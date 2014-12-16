@@ -15,6 +15,7 @@ extern uint32_t __etext[];                // End of code/flash
 // From spi.c
 void spi_init(void);
 uint8_t spi_status(void);
+uint8_t spi_single(uint8_t addr, uint8_t data);
 void spi_write(uint8_t* p, uint8_t size, uint8_t addr);
 void spi_read(uint8_t* p, uint8_t size, uint8_t addr);
 void SPI0_IRQHandler(void) __attribute__((interrupt("IRQ")));
