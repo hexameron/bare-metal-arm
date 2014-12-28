@@ -1,8 +1,6 @@
-Forked from payne92 to add a new demo.
+RFM98 Branch : simple demo to read temperature from HopeRF RFM98 chip.
 
-Branches added for extra Hardware support for EVK add-on board, and kl26z upgraded board.
-
-SPI support clashes with blue LED on PTD1 (arduino D13), so wired through PTD0,PTC5,PTD2,PTD3.
+SPI support clashes with blue LED on PTD1 (arduino D13), but still wired through PTD0,PTD1,PTD2,PTD3.
 
 Bare Metal Arm
 ==============

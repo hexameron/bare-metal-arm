@@ -12,6 +12,10 @@ extern uint32_t __data_start__[], __data_end__[];
 extern uint32_t __bss_start__[], __bss_end__[];
 extern uint32_t __etext[];                // End of code/flash
 
+// From rfm98.c
+void rfm98_init(void);
+short rfm98_temp(void);
+
 // From spi.c
 void spi_init(void);
 uint8_t spi_status(void);
