@@ -15,6 +15,7 @@ extern uint32_t __etext[];                // End of code/flash
 // From rfm98.c
 void rfm98_init(void);
 short rfm98_temp(void);
+void rfm98_transmit(char* message);
 
 // From spi.c
 void spi_init(void);

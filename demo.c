@@ -15,7 +15,7 @@ static char *heap_end;
 // Main program
 int main(void)
 {
-    unsigned int pat;
+    uint32_t pat;
     short temp;
     short ax, ay, az;
     short t1, t2;
@@ -24,6 +24,8 @@ int main(void)
     unsigned short force;
     unsigned short checksum = 0xdead;
     unsigned short seq = 100;
+
+    char message[128];
 
     // Initialize all modules
     uart_init(115200);
@@ -43,7 +45,7 @@ int main(void)
     iprintf("Ident, Count, Temp, Accel mag,pitch,roll Touch l,r *Chksum\r\n");
     
     for(;;) {
-	pat = 1 << 7;
+	pat = 30;
 	while (pat) {
 		ax = accel_x();
 		ay = accel_y();
@@ -73,10 +75,12 @@ int main(void)
 
 		RGB_LED( red, green, blue );
 
-		pat >>= 1;
+		pat -= 1;
 		delay(150);
 	}
-        iprintf("$$HEX,%d,%2d,%4d,%3d,%3d,",seq++, temp, force, pitch, roll);
-        iprintf("%d,%d,*%x\r\n", t1, t2, checksum);
+	sniprintf(message, 64, "$$HEX,%d,%d,%d,%d,%d,%d,%d*%04x\n",
+				seq++, temp, force, pitch, roll, t1, t2, checksum);
+	iprintf("%s\r", message);
+	rfm98_transmit(message);
     }
 }
