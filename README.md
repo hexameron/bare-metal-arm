@@ -1,4 +1,4 @@
-RFM98 Branch : simple demo to read temperature from HopeRF RFM98 chip.
+RFM98 Branch : simple demo to read temperature from HopeRF RFM98 chip and transmit 100 baud RTTY.
 
 SPI support clashes with blue LED on PTD1 (arduino D13), but still wired through PTD0,PTD1,PTD2,PTD3.
 

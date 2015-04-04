@@ -150,22 +150,25 @@ short rfm98_temp(void)
 
 void rfm98_config(void)
 {
+	spi_rw(0x81, 0);	 // sleep
+	delay(250);
 	spi_rw(0x81, 1); // standby
 	delay(250);
 
-	//bitrate = 600, divided to 200
-	spi_rw(0x80|REG_BITRATE_LSB,0x56);
-	spi_rw(0x80|REG_BITRATE_MSB,0xD0);
-	spi_rw(0x80|REG_FDEV_LSB, 7); // deviation / 62 Hz , min 600Hz
+	//bitrate = 800, divided to 100
+	spi_rw(0x80|REG_BITRATE_LSB,0x40);
+	spi_rw(0x80|REG_BITRATE_MSB,0x9c);
+	spi_rw(0x80|REG_FDEV_LSB, 7); // half shift == deviation, min 600Hz 
 	spi_rw(0x80|REG_FDEV_MSB, 0);
 	spi_rw(0x80|REG_PREAMBLE_LSB_FSK, 8);
 	// spi_rw(0x80|REG_PREAMBLE_MSB_FSK, 0;
+	spi_rw(0x80|REG_PAYLOAD_LENGTH_FSK, 0); // unlimited payload length
 
 	//spi_rw(0x80|REG_SYNC_CONFIG, 0x13); // default 32 bits
-	spi_rw(0x80|REG_SYNC_VALUE1, 0x03); // 2 start bits
-	spi_rw(0x80|REG_SYNC_VALUE2, 0xff); //
-	spi_rw(0x80|REG_SYNC_VALUE3, 0xff); // 8 stop bits
-	spi_rw(0x80|REG_SYNC_VALUE4, 0xff); //
+	spi_rw(0x80|REG_SYNC_VALUE1, 0x0f); // preamble
+	spi_rw(0x80|REG_SYNC_VALUE2, 0xf0); //
+	spi_rw(0x80|REG_SYNC_VALUE3, 0x0f); //
+	spi_rw(0x80|REG_SYNC_VALUE4, 0xf0); //
 
 	//spi_rw(0x80|REG_PACKET_CONFIG1, 80);
 	//spi_rw(0x80|REG_PACKET_CONFIG2, 40);
@@ -179,47 +182,48 @@ void rfm98_config(void)
 	spi_rw(0x80|REG_PA_CONFIG, 0x82); // low power
 }
 
-// 7n3 * 3 bits = 33 bit
-uint32_t char2rtty(char c)
+// 8n1
+void char2rtty(char c)
 {
 	short i, b;
-	uint32_t group = 0xf8; // 2 extra stop bits + start bit
-	c |= 0x80; // true stop bit
+
+	spi_rw(0x80, 0x00); // start bit
 	for (i = 0; i < 8; i++) {
-		group <<= 3;
-		b = c & 1;			// LSB one bit in
-		group |= b | (b<<1) | (b<<2);	// MSB 3 bits out
+		b = 256 - (c & 1); // LSB in, 8 bits (MSB) out
+		spi_rw(0x80, b & 0xff); // push to buffer
 		c >>= 1;
 	}
-	return group;
+	spi_rw(0x80, 0xff); // stop bit
 }
 
 void rfm98_transmit(char* message)
 {
 	int i;
-	uint32_t group;
 
-	spi_rw(0x80|REG_IRQ_FLAGS1, 0xff);
-	spi_rw(0x80|REG_IRQ_FLAGS2, 0xff);
+	//spi_rw(0x80|REG_IRQ_FLAGS1, 0xff);
+	//spi_rw(0x80|REG_IRQ_FLAGS2, 0xff);
 
-	spi_rw(0x80, 0x03); // start bit
-	spi_rw(0x80, 0xff);
-	spi_rw(0x80, 0xff); // stop bits
-	spi_rw(0x80, 0xff);
+	// Infinite while loop avoidance :
+	if ( spi_rw(REG_IRQ_FLAGS2, 0) & (1<<5) )
+		return; // check buffer empty flag works
+	if (!( spi_rw(REG_IRQ_FLAGS2, 0) & (1<<6) ))
+		return; // check buffer full flag works
+
+	// preamble (max 64 bytes)
+	for (i = 0; i < 12; i++)
+		spi_rw(0x80, 0x00); // start bits
+	for (i = 0; i < 12; i++)
+		spi_rw(0x80, 0xff); // stop bits
 	spi_rw(0x81, 0x43); // start transmitting
 
-	for (i = 0; i < 64; i++) {
-		if (0 == message[i]) break;
+	for (i = 0; i < 255; i++) { // set MAXIMUM chars to transmit
 
-		// fifo threshold is 16 bytes, 128 bits, 200ms at 600 baud
+		// fifo threshold is 16 bytes, 150ms at 800 baud
 		while ( spi_rw(REG_IRQ_FLAGS2, 0) & (1<<5) )
 			delay(50);	// buffer full enough
 
-		group = char2rtty(message[i]);
-		spi_rw(0x80, (group >>24) & 0xff);
-		spi_rw(0x80, (group >>16) & 0xff);
-		spi_rw(0x80, (group >> 8) & 0xff);
-		spi_rw(0x80, (group >> 0) & 0xff);
+		char2rtty( message[i] );
+		if (0 == message[i]) break; // send trailing zero after message
 	}
 	rfm_temp = spi_rw(0x3c, 0x00);
 
