@@ -7,13 +7,17 @@
 
 #include "hal_i2c.h"
 #include "common.h"
-#include <stdio.h>
+#include "stdio.h"
 
 // Magnetic calibration needs to be done after board assembly
-// Offsets can be programmed into chip, or added in code.
-#define MAG_CAL_X (200)
-#define MAG_CAL_Y (50)
-#define MAG_CAL_Z (900)
+
+// Compile with MAGCAL to get calibration over uart.
+#define MAGCAL
+
+// Sensor offsets from previous calibration
+#define MAG_CAL_X (150)
+#define MAG_CAL_Y (40)
+#define MAG_CAL_Z (980)
 
 #define FXOS8700CQ_STATUS 0x00
 #define FXOS8700CQ_WHOAMI 0x0D
@@ -59,41 +63,62 @@ void mag_init(void)
 // tan(yaw angle) = (mz * sin(roll) – my * cos(roll)) /
 //      (mx * cos(pitch) +  mz * cos(roll) * sin(pitch))
 
+#ifdef MAGCAL
+short interval = 0;
+#endif
+short Xmax = MAG_CAL_X  + 256;
+short Xmin = MAG_CAL_X  - 256;
+short Ymax = MAG_CAL_Y  + 256;
+short Ymin = MAG_CAL_Y  - 256;
+short Zmax = MAG_CAL_Z  + 256;
+short Zmin = MAG_CAL_Z  - 256;
+
 // Measure Mag Field, transform by attitude and calculate North
 short mag_compass(short pitch, short roll)
 {
 	char dataready;
 	short magX, magY, magZ;
-        short angle1, angle2, result;
+        int32_t angle1, angle2;
+	short result;
         short sin_pitch, sin_roll, cos_pitch, cos_roll;
 
-        if (MAG_ID != magReady ) return 0;
+        
+if (MAG_ID != magReady ) return 0;
 	dataready = hal_i2c_read(I2C0_B, MAG_ADD, MAG_READY_REG);
 	if (!(dataready & MAG_XYZ_READY)) return 0;
 
 	magX = hal_i2c_read(I2C0_B, MAG_ADD, MAG_X_OUT);
 	magX <<= 8;
 	magX += hal_i2c_read(I2C0_B, MAG_ADD, MAG_X_OUT + 1);
-	magX -= MAG_CAL_X;
+#ifdef MAGCAL
+	Xmax = (magX > Xmax)? magX : Xmax;
+	Xmin = (magX < Xmin)? magX : Xmin;
+#endif
+	magX -= (Xmax + Xmin)>>1;
 
         magY = hal_i2c_read(I2C0_B, MAG_ADD, MAG_Y_OUT);
         magY <<= 8;
         magY += hal_i2c_read(I2C0_B, MAG_ADD, MAG_Y_OUT + 1);
-	magY -= MAG_CAL_Y;
+#ifdef MAGCAL
+        Ymax = (magY > Ymax)? magY : Ymax;
+        Ymin = (magY < Ymin)? magY : Ymin;
+#endif
+	magY -= (Ymax + Ymin)>>1;
 
         magZ = hal_i2c_read(I2C0_B, MAG_ADD, MAG_Z_OUT);
         magZ <<= 8;
         magZ += hal_i2c_read(I2C0_B, MAG_ADD, MAG_Z_OUT + 1);
-	magZ -= MAG_CAL_Z;
-
-	//iprintf("%d,%d,%d.\n\r",magX,magY,magZ);
+#ifdef MAGCAL
+        Zmax = (magZ > Zmax)? magZ : Zmax;
+        Zmin = (magZ < Zmin)? magZ : Zmin;
+	if ( (63 & interval++) == 0)
+		iprintf("Magnetic Sensor Offsets: (X %d),(Y %d),(Z %d)\n\r",
+			(Xmax + Xmin)>>1, (Ymax + Ymin)>>1, (Zmax + Zmin)>>1);
+#endif
+	magZ -= (Zmax + Zmin)>>1;
 
 	// using one-shot mode for minimum power: check oversample rate.
 	hal_i2c_write(I2C0_B, MAG_ADD, MAG_CTRL1, MAG_SETTING);
-
-	magX >>= 4; // 12 bits down to 8. Will overflow near large magnets
-	magY >>= 4; // 7 bit sine table gives no headroom
-	magZ >>= 4;
 
 	sin_pitch = sine(pitch);
 	cos_pitch = cosine(pitch);
@@ -103,7 +128,8 @@ short mag_compass(short pitch, short roll)
 	angle1 = magZ * sin_roll - magY * cos_roll;
 	angle2 = ((magZ * cos_roll) >> 7) * sin_pitch + magX * cos_pitch;
 
-	result = 180 - findArctan(angle2, angle1, 0);
+	// 12 bit sensor, 7 bit sine tables, 16 bit Arctan
+	result = 180 - findArctan((short)(angle2 >>3), (short)(angle1 >>3), 0);
 	return result;
 }
 

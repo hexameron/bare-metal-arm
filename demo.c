@@ -2,7 +2,7 @@
 // demo.c -- Simple demonstration program
 //
 //  Copyright (c) 2012-2013 Andrew Payne <andy@payne.org>
-//  Copyright (c) 2013-2014 John Greb <github.com/hexameron>
+//  Copyright (c) 2013-2015 John Greb <github.com/hexameron>
 //
 
 #include <stdio.h>
@@ -35,8 +35,6 @@ int main(void)
     char c, telemetry[80];
     unsigned int pat;
     short ax, ay, az;
-    short lpitch = 0;
-    short lroll = 0;
     short t1, t2, temp;
     short red, green, blue;
     short pitch, roll;
@@ -73,6 +71,9 @@ int main(void)
 		force = magnitude( ax, ay, az );
 		pitch = findArctan( ax, ay, az );
 		roll  = findArctan( az, ay, 0 );
+
+		compass = mag_compass(pitch, roll);
+
 		force += (force >> 1) + (force >> 4);
 		force >>= 6; // force as percentage of 1G
 
@@ -99,12 +100,6 @@ int main(void)
 	}
 
 	temp = mag_temp();
-
-	// Magnetometer is in one-shot mode so we need to use the accelerometer
-	// readings from the previous loop.
-	compass = mag_compass(lpitch, lroll);
-	lpitch = pitch;
-	lroll = roll;
 
         sniprintf(telemetry,75,"HEX,%d,%d,%d,%d,%d,%d,%d,%d",
 				seq++,force,pitch,roll,compass,temp,t1,t2);
